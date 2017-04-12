@@ -141,7 +141,10 @@ exports.accountPut = function(req, res, next) {
 
   var user = new User({ id: req.user.id });
   if ('password' in req.body) {
-    user.save({ password: req.body.password }, { patch: true });
+    user.save({ password: req.body.password }, { patch: true }).then(function(user){
+      req.flash('success', {msg: 'Password successfully changed'});
+      res.redirect('/account');
+    });
   } else {
     user.save({
       email: req.body.email,
@@ -149,20 +152,15 @@ exports.accountPut = function(req, res, next) {
       gender: req.body.gender,
       location: req.body.location,
       website: req.body.website
-    }, { patch: true });
-  }
-  user.then(function(user) {
-    if ('password' in req.body) {
-      req.flash('success', { msg: 'Your password has been changed.' });
-    } else {
+    }, { patch: true }).then(function(user){
       req.flash('success', { msg: 'Your profile information has been updated.' });
-    }
-    res.redirect('/account');
-  }).catch(function(err) {
-    if (err.code === 'ER_DUP_ENTRY') {
-      req.flash('error', { msg: 'The email address you have entered is already associated with another account.' });
-    }
-  });
+      res.redirect('/account');
+    }).catch(function(err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        req.flash('error', { msg: 'The email address you have entered is already associated with another account.' });
+      }
+    });
+  }
 };
 
 /**
