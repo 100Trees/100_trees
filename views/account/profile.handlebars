@@ -62,8 +62,19 @@
 
   <h4>Delete Account</h4>
 
+  <!-- THIS NEEDS TO BE FIXED BECAUSE CANCELLING THE CONFIRM BOX STILL DELETES THE ACCOUNT
+  -->
   <form method="POST" action="/account?_method=DELETE">
     <p>You can delete your account, but keep in mind this action is irreversible.</p>
-    <button type="submit">Delete my account</button>
+    <button type="submit" name="del" onclick="clicked();">Delete my account</button>
   </form>
+  <script type="text/javascript">
+    function clicked(){
+      if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+        del.submit();
+      } else {
+          
+      }
+    }
+  </script>
 </div>
