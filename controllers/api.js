@@ -47,11 +47,7 @@ exports.savedTree = function(req, res) {
                 isHealthy: true,
                 saverId: req.session.user ? req.session.user.id : -1
             }).then(function() {
-                return res.render('home', {
-                    key: process.env.API_KEY,
-                    title: 'Home',
-                    message: 'Tree saved!'
-                });
+                return res.send('Tree has been marked as safe.');
             });
         }
     });
