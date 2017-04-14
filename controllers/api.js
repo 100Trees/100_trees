@@ -16,32 +16,23 @@ exports.infectedTree = function(req, res) {
         description: req.body.description,
         is_healthy: false
     };
-    /* Need to convert lat and lon to whatever data-type necessary. 
-     * Need to figure out how to save picture
-     *
-     */
-    knex.insert(tree).into('trees').then(function() {
-        knex('trees').where(tree).then(function(trees) {
-            if (trees.length > 1) {
-                return res.send('Duplicate tree!');
-            } else if (trees.length == 0) {
-                return res.send('Tree did not save properly.')
-            }
-            req.files.forEach(function(f) {
-                if (f.mimetype.includes('image')) {
-                    knex.insert({
-                        filename: f.filename,
-                        tree_id: trees[0].id,
-                        is_before: true
-                    }).into('pictures').then(function() {
-                        console.log('doing stuff');
-                    });
-                }
-            })
-        })
-    });
-
-
+    knex.insert(tree).into('trees');
+    var trees = await knex('trees').where(tree);
+    if (trees.length > 1) {
+        return res.send('Duplicate tree!');
+    } else if (trees.length == 0) {
+        return res.send('Tree did not save properly.')
+    }
+    req.files.forEach(function(f) {
+        if (f.mimetype.includes('image')) {
+            await knex.insert({
+                filename: f.filename,
+                tree_id: trees[0].id,
+                is_before: true
+            }).into('pictures');
+        }
+    })
+    res.send('Done inserting!');
 };
 
 /**
