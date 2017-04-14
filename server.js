@@ -18,6 +18,7 @@ dotenv.load();
 var HomeController = require('./controllers/home');
 var userController = require('./controllers/user');
 var contactController = require('./controllers/contact');
+var apiController = require('./controllers/api');
 
 // Passport OAuth strategies
 require('./config/passport');
@@ -26,18 +27,18 @@ var app = express();
 
 
 var hbs = exphbs.create({
-  defaultLayout: 'main',
-  helpers: {
-    ifeq: function(a, b, options) {
-      if (a === b) {
-        return options.fn(this);
-      }
-      return options.inverse(this);
-    },
-    toJSON : function(object) {
-      return JSON.stringify(object);
+    defaultLayout: 'main',
+    helpers: {
+        ifeq: function(a, b, options) {
+            if (a === b) {
+                return options.fn(this);
+            }
+            return options.inverse(this);
+        },
+        toJSON: function(object) {
+            return JSON.stringify(object);
+        }
     }
-  }
 });
 
 app.engine('handlebars', hbs.engine);
@@ -54,8 +55,8 @@ app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(function(req, res, next) {
-  res.locals.user = req.user ? req.user.toJSON() : null;
-  next();
+    res.locals.user = req.user ? req.user.toJSON() : null;
+    next();
 });
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -79,17 +80,19 @@ app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', '
 app.get('/auth/facebook/callback', passport.authenticate('facebook', { successRedirect: '/', failureRedirect: '/login' }));
 app.get('/auth/google', passport.authenticate('google', { scope: 'profile email' }));
 app.get('/auth/google/callback', passport.authenticate('google', { successRedirect: '/', failureRedirect: '/login' }));
+app.post('/api/tree/infected', apiController.infectedTree);
+app.post('/api/tree/saved', apiController.savedTree);
 
 // Production error handler
 if (app.get('env') === 'production') {
-  app.use(function(err, req, res, next) {
-    console.error(err.stack);
-    res.sendStatus(err.status || 500);
-  });
+    app.use(function(err, req, res, next) {
+        console.error(err.stack);
+        res.sendStatus(err.status || 500);
+    });
 }
 
 app.listen(app.get('port'), function() {
-  console.log('Express server listening on port ' + app.get('port'));
+    console.log('Express server listening on port ' + app.get('port'));
 });
 
 module.exports = app;
