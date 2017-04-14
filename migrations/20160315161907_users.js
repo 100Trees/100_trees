@@ -21,13 +21,13 @@ exports.up = function(knex, Promise) {
         })
         .createTable('trees', function(table) {
             table.increments();
-            table.float('latitude');
-            table.float('longitude');
+            table.specificType('geom', 'GEOMETRY(Point, 4326)')
             table.integer('posterId');
             table.integer('saverId');
             table.boolean('isHealthy');
             table.string('description');
             table.timestamps();
+            table.index('geom', 'trees_gix', 'GIST')
         })
     ]);
 };
