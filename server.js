@@ -83,7 +83,7 @@ app.get('/auth/facebook/callback', passport.authenticate('facebook', { successRe
 app.get('/auth/google', passport.authenticate('google', { scope: 'profile email' }));
 app.get('/auth/google/callback', passport.authenticate('google', { successRedirect: '/', failureRedirect: '/login' }));
 app.post('/api/tree/infected', type, apiController.infectedTree);
-app.post('/api/tree/saved', apiController.savedTree);
+app.post('/api/tree/saved', type, apiController.savedTree);
 
 // Production error handler
 if (app.get('env') === 'production') {

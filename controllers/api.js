@@ -7,7 +7,7 @@ const knex = require('../config/bookshelf.js').knex;
  * This endpoint saves a new, infected tree to the database.
  * TODO: Allow pictures + better location to be uploaded.
  */
-exports.infectedTree = function(req, res) {
+async function infectedTree(req, res) {
     var tree = {
         poster_id: req.session.user ? req.session.user.id : -1,
         saver_id: null,
@@ -16,20 +16,16 @@ exports.infectedTree = function(req, res) {
         description: req.body.description,
         is_healthy: false
     };
-    knex.insert(tree).into('trees');
-    var trees = await knex('trees').where(tree);
-    if (trees.length > 1) {
-        return res.send('Duplicate tree!');
-    } else if (trees.length == 0) {
-        return res.send('Tree did not save properly.')
-    }
+    var id = await knex.insert(tree).returning('id').into('trees');
     req.files.forEach(function(f) {
         if (f.mimetype.includes('image')) {
             await knex.insert({
                 filename: f.filename,
-                tree_id: trees[0].id,
+                tree_id: id,
                 is_before: true
             }).into('pictures');
+        } else {
+            console.log('Trying to insert non-images.');
         }
     })
     res.send('Done inserting!');
@@ -41,24 +37,33 @@ exports.infectedTree = function(req, res) {
  * TODO: 
  * Allow pictures to be uploaded.
  */
-exports.savedTree = function(req, res) {
-    knex('trees').where({
+async function savedTree(req, res) {
+    var trees = await knex('trees').where({
         id: req.body.treeId,
-        isHealthy: false
-    }).then(function(trees) {
-        if (trees.length == 0) {
-            return res.send('No tree with that ID that needs to be saved.');
+        is_healthy: false
+    })
+    if (trees.length == 0) {
+        return res.send('No tree with that ID that needs to be saved.');
+    }
+    await knex('trees').where({
+        id: req.body.treeId,
+        is_healthy: false
+    }).update({
+        is_healthy: true,
+        saver_id: req.session.user ? req.session.user.id : -1
+    })
+    req.files.forEach(function(f) {
+        if (f.mimetype.includes('image')) {
+            await knex.insert({
+                filename: f.filename,
+                tree_id: req.body.treeId,
+                is_before: false
+            }).into('pictures');
         } else {
-            knex('trees').where({
-                id: req.body.treeId,
-                isHealthy: false
-            }).update({
-                isHealthy: true,
-                saverId: req.session.user ? req.session.user.id : -1
-            }).then(function() {
-
-                return res.send('Tree has been marked as safe.');
-            });
+            console.log('Trying to insert non-images.');
         }
-    });
+    })
+    return res.send('Tree has been marked as safe.');
 }
+
+module.exports = { infectedTree, savedTree };
