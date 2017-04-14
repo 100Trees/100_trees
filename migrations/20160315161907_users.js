@@ -23,10 +23,17 @@ exports.up = function(knex, Promise) {
             table.increments();
             table.float('latitude');
             table.float('longitude');
-            table.integer('posterId');
-            table.integer('saverId');
-            table.boolean('isHealthy');
+            table.integer('poster_id');
+            table.integer('saver_id');
+            table.boolean('is_healthy');
             table.string('description');
+            table.timestamps();
+        })
+        .createTable('pictures', function(table) {
+            table.increments();
+            table.string('filename').unique();
+            table.integer('tree_id');
+            table.boolean('is_before');
             table.timestamps();
         })
     ]);

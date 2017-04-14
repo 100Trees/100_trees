@@ -10,7 +10,9 @@ var expressValidator = require('express-validator');
 var dotenv = require('dotenv');
 var exphbs = require('express-handlebars');
 var passport = require('passport');
-
+var multer = require('multer')
+var upload = multer({ dest: 'uploads/' });
+var type = upload.array('picture');
 // Load environment variables from .env file
 dotenv.load();
 
@@ -80,7 +82,7 @@ app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['email', '
 app.get('/auth/facebook/callback', passport.authenticate('facebook', { successRedirect: '/', failureRedirect: '/login' }));
 app.get('/auth/google', passport.authenticate('google', { scope: 'profile email' }));
 app.get('/auth/google/callback', passport.authenticate('google', { successRedirect: '/', failureRedirect: '/login' }));
-app.post('/api/tree/infected', apiController.infectedTree);
+app.post('/api/tree/infected', type, apiController.infectedTree);
 app.post('/api/tree/saved', apiController.savedTree);
 
 // Production error handler
