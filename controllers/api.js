@@ -1,29 +1,33 @@
 var dotenv = require('dotenv');
 dotenv.load();
 const knex = require('../config/bookshelf.js').knex;
-
+const _ = require('lodash');
 /**
  * POST /tree/infected
  * This endpoint saves a new, infected tree to the database.
  * TODO: Allow pictures + better location to be uploaded.
  */
-exports.infectedTree = function(req, res) {
-    var tree = {
-        posterId: req.session.user ? req.session.user.id : -1,
-        saverId: null,
+async function infectedTree(req, res) {
+    const tree = {
+        poster_id: req.session.user ? req.session.user.id : -1,
+        saver_id: null,
         latitude: parseFloat(req.body.latitude),
         longitude: parseFloat(req.body.latitude),
         description: req.body.description,
-        isHealthy: false
+        is_healthy: false
     };
-    /* Need to convert lat and lon to whatever data-type necessary. 
-     * Need to figure out how to save picture
-     *
-     */
-    knex.insert(tree).into('trees')
-        .then(function() {
-            return res.send('Tree inserted!');
-        });
+    if (isInvalidUpload(req.files)) {
+        return res.send('Included non image file');
+    }
+    const id = await knex.insert(tree).returning('id').into('trees');
+    _.each(req.files, async(f) => {
+        await knex.insert({
+            filename: f.filename,
+            tree_id: id,
+            is_before: true
+        }).into('pictures');
+    });
+    return res.send(`Done inserting tree with ${req.files.length} pictures.`);
 };
 
 /**
@@ -32,23 +36,39 @@ exports.infectedTree = function(req, res) {
  * TODO: 
  * Allow pictures to be uploaded.
  */
-exports.savedTree = function(req, res) {
-    knex('trees').where({
+async function savedTree(req, res) {
+    const id = req.body.treeId;
+    const trees = await knex('trees').where({
+        id: id,
+        is_healthy: false
+    });
+    if (trees.length == 0) {
+        return res.send('No tree with that ID that needs to be restored.');
+    }
+    if (isInvalidUpload(req.files)) {
+        return res.send('Included non image file');
+    }
+    await knex('trees').where({
         id: req.body.treeId,
-        isHealthy: false
-    }).then(function(trees) {
-        if (trees.length == 0) {
-            return res.send('No tree with that ID that needs to be saved.');
-        } else {
-            knex('trees').where({
-                id: req.body.treeId,
-                isHealthy: false
-            }).update({
-                isHealthy: true,
-                saverId: req.session.user ? req.session.user.id : -1
-            }).then(function() {
-                return res.send('Tree has been marked as safe.');
-            });
-        }
+        is_healthy: false
+    }).update({
+        is_healthy: true,
+        saver_id: req.session.user ? req.session.user.id : -1
+    });
+    _.each(req.files, async(f) => {
+        await knex.insert({
+            filename: f.filename,
+            tree_id: id,
+            is_before: false
+        }).into('pictures');
+    });
+    return res.send(`Tree has been marked as safe with ${req.files.length} pictures.`);
+}
+
+function isInvalidUpload(files) {
+    return _.findLast(files, (f) => {
+        return !f.mimetype.includes('image');
     });
 }
+
+module.exports = { infectedTree, savedTree };

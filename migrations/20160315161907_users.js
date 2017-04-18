@@ -29,6 +29,13 @@ exports.up = function(knex, Promise) {
             table.timestamps();
             table.index('geom', 'trees_gix', 'GIST')
         })
+        .createTable('pictures', function(table) {
+            table.increments();
+            table.string('filename').unique();
+            table.integer('tree_id');
+            table.boolean('is_before');
+            table.timestamps();
+        })
     ]);
 };
 
