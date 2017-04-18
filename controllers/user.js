@@ -139,6 +139,7 @@ exports.accountPut = function(req, res, next) {
     return res.redirect('/account');
   }
 
+  var coordinates = req.body.coordinates.split(',');
   var user = new User({ id: req.user.id });
   if ('password' in req.body) {
     user.save({ password: req.body.password }, { patch: true }).then(function(user){
@@ -150,6 +151,8 @@ exports.accountPut = function(req, res, next) {
       email: req.body.email,
       name: req.body.name,
       gender: req.body.gender,
+      latitude: parseFloat(coordinates[0]),
+      longitude: parseFloat(coordinates[1]),
       location: req.body.location,
       website: req.body.website
     }, { patch: true }).then(function(user){
