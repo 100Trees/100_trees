@@ -28,6 +28,9 @@ async function infectedTree(req, res) {
             is_before: true
         }).into('pictures');
     });
+
+    // getAllTrees(parseFloat(req.body.longitude), parseFloat(req.body.latitude), 10, 15);
+
     return res.redirect('/contact');
 };
 
@@ -66,10 +69,44 @@ async function savedTree(req, res) {
     return res.send(`Tree has been marked as safe with ${req.files.length} pictures.`);
 }
 
+/**
+ * This endpoint returns all trees within a specified radius in miles. Default is 10 miles.
+ * There is also an option to only return a certain number of trees.
+ */
+async function getAllTrees(longitude, latitude, range, number){
+    const radius = range == null? 16093.4 : range * 1609.34;
+    const trees = [];
+    knex('trees').where(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' 
+    + postgis.makePoint(longitude, latitude) + ',4326)) <= '+ radius + ';')).then((row) => {
+        if (number != null && trees.length < number){
+            trees.push(row);
+        }
+        // console.log(row);
+    });
+    return trees;
+}
+
+/**
+ * This endpoint returns ONLY INFECTED trees within a specified radius in miles. Default is 10 miles.
+ * There is also an option to only return a certain number of trees.
+ */
+async function getInfectedTrees(longitude, latitude, range, number){
+    const radius = range == null? 16093.4 : range * 1609.34;
+    const trees = [];
+    knex('trees').where({isHealthy: false}).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' 
+    + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + radius + ';')).then((row) => {
+        if (number != null && trees.length < number){
+            trees.push(row);
+        }
+        // console.log(row);
+    });
+    return trees;
+}
+
 function isInvalidUpload(files) {
     return _.findLast(files, (f) => {
         return !f.mimetype.includes('image');
     });
 }
 
-module.exports = { infectedTree, savedTree };
+module.exports = { infectedTree, savedTree, getAllTrees, getInfectedTrees };
