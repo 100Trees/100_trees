@@ -73,32 +73,35 @@ async function savedTree(req, res) {
  * This endpoint returns all trees within a specified radius in miles. Default is 10 miles.
  * There is also an option to only return a certain number of trees.
  */
-async function getAllTrees(longitude, latitude, range, number){
-    const radius = range == null? 16093.4 : range * 1609.34;
-    const trees = [];
-    knex('trees').where(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' 
-    + postgis.makePoint(longitude, latitude) + ',4326)) <= '+ radius + ';')).then((row) => {
-        if (number != null && trees.length < number){
-            trees.push(row);
-        }
-        // console.log(row);
-    });
-    return trees;
-}
 
-/**
- * This endpoint returns ONLY INFECTED trees within a specified radius in miles. Default is 10 miles.
- * There is also an option to only return a certain number of trees.
- */
-async function getInfectedTrees(longitude, latitude, range, number){
-    const radius = range == null? 16093.4 : range * 1609.34;
+async function getTrees(req, res) {
+    /*
+     * long, lat REQ
+     * healthy, range, num optional
+     */
+
+    const range = req.body.range ? req.body.range * 1609.34 : 16093.4;
+    // if (range > UPPER LIMIT ON RANGE) return res.send('Upper limit on range hit.');
+    if (req.body.isHealthy) {
+        const isHealthy = req.body.isHealthy.toLowerCase() === 'true' ? true : false;
+    } else {
+        const isHealthy = null;
+    }
+    const number = req.body.number ? req.body.number : 15;
+    // if (number > UPPER LIMIT ON NUM) return res.send('Upper limit on range hit.');
+    if (!req.body.longitude || !req.body.latitude) return res.send('Invalid latitude or longitude');
+    const longitude = parseFloat(req.body.longitude);
+    const latitude = parseFloat(req.body.latitude);
     const trees = [];
-    knex('trees').where({isHealthy: false}).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' 
-    + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + radius + ';')).then((row) => {
-        if (number != null && trees.length < number){
+    if (isHealthy != null) {
+        const returned = await knex('trees').where({ isHealthy: isHealthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + radius + ';'));
+    } else {
+        const returned = await knex('trees').where(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + radius + ';'));
+    }
+    returned.forEach((row) => {
+        if (number != null && trees.length < number) {
             trees.push(row);
         }
-        // console.log(row);
     });
     return trees;
 }
@@ -109,4 +112,4 @@ function isInvalidUpload(files) {
     });
 }
 
-module.exports = { infectedTree, savedTree, getAllTrees, getInfectedTrees };
+module.exports = { infectedTree, savedTree, getTrees };
