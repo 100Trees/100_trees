@@ -20,10 +20,11 @@ async function infectedTree(req, res) {
         return res.send('Included non image file');
     }
     const id = await knex.insert(tree).returning('id').into('trees');
+    // console.log(id[0]);
     _.each(req.files, async(f) => {
         await knex.insert({
             filename: f.filename,
-            tree_id: id,
+            tree_id: id[0],
             is_before: true
         }).into('pictures');
     });
