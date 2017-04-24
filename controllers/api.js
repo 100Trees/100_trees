@@ -1,6 +1,7 @@
 var dotenv = require('dotenv');
 dotenv.load();
 const knex = require('../config/bookshelf.js').knex;
+const postgis = require('knex-postgis')(knex);
 const _ = require('lodash');
 /**
  * POST /tree/infected
@@ -9,12 +10,11 @@ const _ = require('lodash');
  */
 async function infectedTree(req, res) {
     const tree = {
-        poster_id: req.session.user ? req.session.user.id : -1,
-        saver_id: null,
-        latitude: parseFloat(req.body.latitude),
-        longitude: parseFloat(req.body.latitude),
-        description: req.body.description,
-        is_healthy: false
+        geom: knex.raw('ST_SetSRID(' + postgis.makePoint(parseFloat(req.body.longitude), parseFloat(req.body.latitude)) + ',4326)'),
+        posterId: req.session.user ? req.session.user.id : -1,
+        saverId: null,
+        isHealthy: false,
+        description: req.body.description
     };
     if (isInvalidUpload(req.files)) {
         return res.send('Included non image file');
@@ -27,7 +27,7 @@ async function infectedTree(req, res) {
             is_before: true
         }).into('pictures');
     });
-    return res.send(`Done inserting tree with ${req.files.length} pictures.`);
+    return res.redirect('/contact');
 };
 
 /**
