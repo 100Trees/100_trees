@@ -101,7 +101,7 @@ async function getTrees(req, res) {
 }
 
 function me(req, res) {
-    res.send(req.user ? req.user : null);
+    res.send(req.user ? req.user : {});
 }
 
 function imageFilter(req, file, cb) {
