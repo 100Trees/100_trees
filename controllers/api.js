@@ -82,8 +82,7 @@ async function getTrees(req, res) {
 
     const range = req.body.range ? req.body.range * 1609.34 : 16093.4;
     // if (range > UPPER LIMIT ON RANGE) return res.send('Upper limit on range hit.');
-    const isHealthy = req.body.isHealthy ? req.body.isHealthy.toLowerCase() : null;
-    if (isHealthy != null) isHealthy = req.body.isHealthy.toLowerCase() === 'true' ? true : false;
+    const isHealthy = req.body.isHealthy ? parseBoolean(req.body.isHealthy.toLowerCase()) : null;
 
     const number = req.body.number ? req.body.number : 15;
     // if (number > UPPER LIMIT ON NUM) return res.send('Upper limit on range hit.');
@@ -91,7 +90,7 @@ async function getTrees(req, res) {
     const longitude = parseFloat(req.body.longitude);
     const latitude = parseFloat(req.body.latitude);
     const trees = [];
-    const returned = isHealthy ? await knex('trees').where({ isHealthy: isHealthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'))
+    const returned = isHealthy != null ? await knex('trees').where({ isHealthy: isHealthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'))
         : await knex('trees').where(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'));
     returned.forEach((row) => {
         if (number != null && trees.length < number) {
