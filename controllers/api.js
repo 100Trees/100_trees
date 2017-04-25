@@ -80,7 +80,7 @@ async function getTrees(req, res) {
      * healthy, range, num optional
      */
 
-    const range = req.body.range ? req.body.range * 1609.34 : 16093.4;
+    const range = req.body.range ? parseFloat(req.body.range) * 1609.34 : 16093.4;
     // if (range > UPPER LIMIT ON RANGE) return res.send('Upper limit on range hit.');
     const isHealthy = req.body.isHealthy ? parseBoolean(req.body.isHealthy.toLowerCase()) : null;
 
@@ -96,10 +96,8 @@ async function getTrees(req, res) {
         if (trees.length < number) {
             trees.push(row);
         }
-    });
-    console.log(trees);
-    // Consider sanitization
-    return trees;
+    });   
+    res.send(trees);
 }
 
 function isInvalidUpload(files) {
