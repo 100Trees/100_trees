@@ -96,7 +96,6 @@ async function getTrees(req, res) {
             trees.push(row);
         }
     });
-    console.log(trees);
     res.send(trees);
 }
 
