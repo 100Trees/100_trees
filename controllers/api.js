@@ -100,9 +100,13 @@ async function getTrees(req, res) {
     res.send(trees);
 }
 
+function me(req, res) {
+    res.send(req.user ? req.user : null);
+}
+
 function imageFilter(req, file, cb) {
     if(file.mimetype.includes('image')) cb(null, true);
     else cb(null, false);
 }
 
-module.exports = { infectedTree, savedTree, getTrees, imageFilter };
+module.exports = { infectedTree, savedTree, getTrees, imageFilter, me };

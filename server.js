@@ -87,7 +87,8 @@ app.get('/auth/google', passport.authenticate('google', { scope: 'profile email'
 app.get('/auth/google/callback', passport.authenticate('google', { successRedirect: '/', failureRedirect: '/login' }));
 app.post('/api/tree/infected', upload.array('picture'), apiController.infectedTree);
 app.post('/api/tree/saved', upload.array('picture'), apiController.savedTree);
-app.post('/api/tree/getTrees', upload.array('picture'), apiController.getTrees);
+app.post('/api/trees', upload.array('picture'), apiController.getTrees);
+app.get('/api/me', apiController.me);
 
 // Production error handler
 if (app.get('env') === 'production') {
