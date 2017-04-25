@@ -28,6 +28,8 @@ async function infectedTree(req, res) {
         }).into('pictures');
     });
 
+    // getTrees(req, res);
+
     return res.redirect('/contact');
 };
 
@@ -87,13 +89,14 @@ async function getTrees(req, res) {
     const longitude = parseFloat(req.body.longitude);
     const latitude = parseFloat(req.body.latitude);
     const trees = [];
-    const returned = isHealthy != null ? await knex('trees').where({ isHealthy: isHealthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'))
-        : await knex('trees').where(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'));
+    const returned = isHealthy != null ? await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where({ isHealthy: isHealthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'))
+        : await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'));
     _.each(returned, (row) => {
         if (trees.length < number) {
             trees.push(row);
         }
-    });   
+    });
+    console.log(trees);
     res.send(trees);
 }
 
