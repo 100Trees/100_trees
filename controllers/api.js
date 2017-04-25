@@ -92,12 +92,13 @@ async function getTrees(req, res) {
     const trees = [];
     const returned = isHealthy != null ? await knex('trees').where({ isHealthy: isHealthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'))
         : await knex('trees').where(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'));
-    returned.forEach((row) => {
-        if (number != null && trees.length < number) {
+    _.each(returned, (row) => {
+        if (trees.length < number) {
             trees.push(row);
         }
     });
     console.log(trees);
+    // Consider sanitization
     return trees;
 }
 
