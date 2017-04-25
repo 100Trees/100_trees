@@ -13,6 +13,7 @@ var passport = require('passport');
 var multer = require('multer')
 var upload = multer({ dest: 'uploads/' });
 var type = upload.array('picture');
+var expstate = require('express-state');
 // Load environment variables from .env file
 dotenv.load();
 
@@ -61,6 +62,8 @@ app.use(function(req, res, next) {
     next();
 });
 app.use(express.static(path.join(__dirname, 'public')));
+expstate.extend(app);
+app.set("state namespace", 'App');
 
 app.get('/', HomeController.index);
 app.get('/contact', contactController.contactGet);
