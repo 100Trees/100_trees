@@ -6,9 +6,10 @@ const _ = require('lodash');
 /**
  * POST /tree/infected
  * This endpoint saves a new, infected tree to the database.
- * TODO: Allow pictures + better location to be uploaded.
  */
 async function infectedTree(req, res) {
+    console.log(req.files);
+    if (req.files.length == 0) return res.send('No valid image files given');
     const tree = {
         geom: knex.raw('ST_SetSRID(' + postgis.makePoint(parseFloat(req.body.longitude), parseFloat(req.body.latitude)) + ',4326)'),
         posterId: req.session.user ? req.session.user.id : -1,
@@ -16,11 +17,9 @@ async function infectedTree(req, res) {
         isHealthy: false,
         description: req.body.description
     };
-    if (isInvalidUpload(req.files)) {
-        return res.send('Included non image file');
-    }
+
     const id = await knex.insert(tree).returning('id').into('trees');
-    // console.log(id[0]);
+
     _.each(req.files, async(f) => {
         await knex.insert({
             filename: f.filename,
@@ -29,15 +28,13 @@ async function infectedTree(req, res) {
         }).into('pictures');
     });
 
-    getTrees(req, res);
-
     return res.redirect('/contact');
 };
 
 /**
  * POST /tree/saved
  * This endpoint changes an infected tree to a saved one.
- * TODO: 
+ * TODO:
  * Allow pictures to be uploaded.
  */
 async function savedTree(req, res) {
@@ -49,9 +46,9 @@ async function savedTree(req, res) {
     if (trees.length == 0) {
         return res.send('No tree with that ID that needs to be restored.');
     }
-    if (isInvalidUpload(req.files)) {
-        return res.send('Included non image file');
-    }
+    // if (isInvalidUpload(req.files)) {
+    //     return res.send('Included non image file');
+    // }
     await knex('trees').where({
         id: req.body.treeId,
         is_healthy: false
@@ -100,10 +97,9 @@ async function getTrees(req, res) {
     res.send(trees);
 }
 
-function isInvalidUpload(files) {
-    return _.findLast(files, (f) => {
-        return !f.mimetype.includes('image');
-    });
+function imageFilter(req, file, cb) {
+    if(file.mimetype.includes('image')) cb(null, true);
+    else cb(null, false);
 }
 
-module.exports = { infectedTree, savedTree, getTrees };
+module.exports = { infectedTree, savedTree, getTrees, imageFilter };
