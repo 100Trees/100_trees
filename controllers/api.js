@@ -99,6 +99,25 @@ async function getTrees(req, res) {
     res.send(trees);
 }
 
+async function treeInfo(req, res) {
+    const tree_id = req.body.id;
+    if (!tree_id) res.send('No tree id provided.');
+    const trees = await knex('trees').where({ id: tree_id });
+    if (trees.length !== 1) res.send('Tree id has either 0 or more than 1 trees associated with it.');
+    const tree = trees[0];
+    const userId = tree.posterId;
+    const is_before = !(tree.isHealthy);
+    const pictures = await knex('pictures').where({ tree_id, is_before });
+    const users = await knex('users').where({ id: userId });
+    const username = userId === -1 && users.length === 0 ? "Guest User" : users[0].name;
+    res.send(
+    {
+        username,
+        pictures,
+        tree
+    });
+}
+
 function me(req, res) {
     res.send(req.user ? req.user : {});
 }
@@ -108,4 +127,4 @@ function imageFilter(req, file, cb) {
     else cb(null, false);
 }
 
-module.exports = { infectedTree, savedTree, getTrees, imageFilter, me };
+module.exports = { infectedTree, savedTree, getTrees, imageFilter, me, treeInfo };
