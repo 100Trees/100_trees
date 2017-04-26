@@ -250,8 +250,8 @@ exports.forgotPost = function(req, res, next) {
         req.flash('error', { msg: 'The email address ' + req.body.email + ' is not associated with any account.' });
         return res.redirect('/forgot');
           }
-          user.set('passwordResetToken', token);
-          user.set('passwordResetExpires', new Date(Date.now() + 3600000)); // expire in 1 hour
+          user.set('password_reset_token', token);
+          user.set('password_reset_expires', new Date(Date.now() + 3600000)); // expire in 1 hour
           user.save(user.changed, { patch: true }).then(function() {
             done(null, token, user.toJSON());
           });
@@ -289,8 +289,8 @@ exports.resetGet = function(req, res) {
   if (req.isAuthenticated()) {
     return res.redirect('/');
   }
-  new User({ passwordResetToken: req.params.token })
-    .where('passwordResetExpires', '>', new Date())
+  new User({ password_reset_token: req.params.token })
+    .where('password_reset_expires', '>', new Date())
     .fetch()
     .then(function(user) {
       if (!user) {
@@ -319,8 +319,8 @@ exports.resetPost = function(req, res, next) {
 
   async.waterfall([
     function(done) {
-      new User({ passwordResetToken: req.params.token })
-        .where('passwordResetExpires', '>', new Date())
+      new User({ password_reset_token: req.params.token })
+        .where('password_reset_expires', '>', new Date())
         .fetch()
         .then(function(user) {
           if (!user) {
@@ -328,8 +328,8 @@ exports.resetPost = function(req, res, next) {
           return res.redirect('back');
           }
           user.set('password', req.body.password);
-          user.set('passwordResetToken', null);
-          user.set('passwordResetExpires', null);
+          user.set('password_reset_token', null);
+          user.set('password_reset_expires', null);
           user.save(user.changed, { patch: true }).then(function() {
           req.logIn(user, function(err) {
             done(err, user.toJSON());
