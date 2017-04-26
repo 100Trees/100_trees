@@ -104,10 +104,10 @@ async function treeInfo(req, res) {
     const trees = await knex('trees').where({ id: tree_id });
     if (trees.length !== 1) res.send('Tree id has either 0 or more than 1 trees associated with it.');
     const tree = trees[0];
-    const userId = tree.posterId;
+    const userId = tree.poster_id;
     const is_before = !(tree.isHealthy);
     const pictures = await knex('pictures').where({ tree_id, is_before });
-    const users = await knex('users').where({ id: userId });
+    const users = await knex('users').where({ id: user_id });
     const username = userId === -1 && users.length === 0 ? "Guest User" : users[0].name;
     res.send(
     {
