@@ -89,6 +89,7 @@ app.post('/api/tree/infected', upload.array('picture'), apiController.infectedTr
 app.post('/api/tree/saved', upload.array('picture'), apiController.savedTree);
 app.post('/api/trees', upload.array('picture'), apiController.getTrees);
 app.get('/api/me', apiController.me);
+app.post('/api/tree/info', apiController.treeInfo);
 
 // Production error handler
 if (app.get('env') === 'production') {
