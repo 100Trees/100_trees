@@ -96,8 +96,11 @@ async function getTrees(req, res) {
             trees.push(row);
         }
     });
-    console.log(trees);
     res.send(trees);
+}
+
+function me(req, res) {
+    res.send(req.user ? req.user : {});
 }
 
 function imageFilter(req, file, cb) {
@@ -105,4 +108,4 @@ function imageFilter(req, file, cb) {
     else cb(null, false);
 }
 
-module.exports = { infectedTree, savedTree, getTrees, imageFilter };
+module.exports = { infectedTree, savedTree, getTrees, imageFilter, me };
