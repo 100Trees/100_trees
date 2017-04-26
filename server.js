@@ -90,6 +90,7 @@ app.post('/api/tree/saved', upload.array('picture'), apiController.savedTree);
 app.post('/api/trees', upload.array('picture'), apiController.getTrees);
 app.get('/api/me', apiController.me);
 app.post('/api/tree/info', apiController.treeInfo);
+app.post('/api/user/info', apiController.userInfo);
 
 // Production error handler
 if (app.get('env') === 'production') {

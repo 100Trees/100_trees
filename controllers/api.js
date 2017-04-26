@@ -80,7 +80,7 @@ async function getTrees(req, res) {
      */
     const range = req.body.range ? parseFloat(req.body.range) * 1609.34 : 16093.4;
     // if (range > UPPER LIMIT ON RANGE) return res.send('Upper limit on range hit.');
-    const is_healthy = req.body.is_healthy ? parseBoolean(req.body.is_healthy.toLowerCase()) : null;
+    const isHealthy = req.body.isHealthy ? parseBoolean(req.body.isHealthy.toLowerCase()) : null;
 
     const number = req.body.number ? req.body.number : 15;
     // if (number > UPPER LIMIT ON NUM) return res.send('Upper limit on range hit.');
@@ -88,7 +88,7 @@ async function getTrees(req, res) {
     const longitude = parseFloat(req.body.longitude);
     const latitude = parseFloat(req.body.latitude);
     const trees = [];
-    const returned = is_healthy != null ? await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where({ is_healthy: is_healthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'))
+    const returned = isHealthy != null ? await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where({ is_healthy: isHealthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'))
         : await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'));
     _.each(returned, (row) => {
         if (trees.length < number) {
@@ -99,21 +99,35 @@ async function getTrees(req, res) {
 }
 
 async function treeInfo(req, res) {
-    const tree_id = req.body.id;
-    if (!tree_id) res.send('No tree id provided.');
-    const trees = await knex('trees').where({ id: tree_id });
+    const treeId = req.body.id;
+    if (!treeId) res.send('No tree id provided.');
+    const trees = await knex('trees').where({ id: treeId });
     if (trees.length !== 1) res.send('Tree id has either 0 or more than 1 trees associated with it.');
     const tree = trees[0];
     const userId = tree.poster_id;
-    const is_before = !(tree.isHealthy);
-    const pictures = await knex('pictures').where({ tree_id, is_before });
-    const users = await knex('users').where({ id: user_id });
+    const isBefore = !(tree.is_healthy);
+    const pictures = await knex('pictures').where({ tree_id: treeId, is_before: isBefore });
+    const users = await knex('users').where({ id: userId });
     const username = userId === -1 && users.length === 0 ? "Guest User" : users[0].name;
     res.send(
     {
         username,
         pictures,
         tree
+    });
+}
+
+async function userInfo(req, res) {
+    const id = req.body.id;
+    const savedTrees = await knex('trees').where({ saver_id: id });
+    const postedTrees = await knex('trees').where({ poster_id: id });
+    const users = await knex('users').where({ id });
+    if (users.length !== 1) return res.send(`0 or >1 users associated with id ${id}`);
+    const user = users[0];
+    res.send({
+        user, 
+        savedTrees,
+        postedTrees
     });
 }
 
@@ -126,4 +140,4 @@ function imageFilter(req, file, cb) {
     else cb(null, false);
 }
 
-module.exports = { infectedTree, savedTree, getTrees, imageFilter, me, treeInfo };
+module.exports = { infectedTree, savedTree, getTrees, imageFilter, me, treeInfo, userInfo };
