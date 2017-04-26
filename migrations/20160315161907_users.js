@@ -5,8 +5,8 @@ exports.up = function(knex, Promise) {
             table.string('name');
             table.string('email').unique();
             table.string('password');
-            table.string('passwordResetToken');
-            table.dateTime('passwordResetExpires');
+            table.string('password_reset_token');
+            table.dateTime('password_reset_expires');
             table.string('gender');
             table.float('latitude');
             table.float('longitude');
@@ -22,9 +22,9 @@ exports.up = function(knex, Promise) {
         .createTable('trees', function(table) {
             table.increments();
             table.specificType('geom', 'GEOMETRY(Point, 4326)')
-            table.integer('posterId');
-            table.integer('saverId');
-            table.boolean('isHealthy');
+            table.integer('poster_id');
+            table.integer('saver_id');
+            table.boolean('is_healthy');
             table.string('description');
             table.timestamps();
             table.index('geom', 'trees_gix', 'GIST')

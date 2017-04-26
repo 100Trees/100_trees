@@ -12,9 +12,9 @@ async function infectedTree(req, res) {
     if (req.files.length == 0) return res.send('No valid image files given');
     const tree = {
         geom: knex.raw('ST_SetSRID(' + postgis.makePoint(parseFloat(req.body.longitude), parseFloat(req.body.latitude)) + ',4326)'),
-        posterId: req.session.user ? req.session.user.id : -1,
-        saverId: null,
-        isHealthy: false,
+        poster_id: req.session.user ? req.session.user.id : -1,
+        saver_id: null,
+        is_healthy: false,
         description: req.body.description
     };
 
@@ -78,10 +78,9 @@ async function getTrees(req, res) {
      * long, lat REQ
      * healthy, range, num optional
      */
-
     const range = req.body.range ? parseFloat(req.body.range) * 1609.34 : 16093.4;
     // if (range > UPPER LIMIT ON RANGE) return res.send('Upper limit on range hit.');
-    const isHealthy = req.body.isHealthy ? parseBoolean(req.body.isHealthy.toLowerCase()) : null;
+    const is_healthy = req.body.is_healthy ? parseBoolean(req.body.is_healthy.toLowerCase()) : null;
 
     const number = req.body.number ? req.body.number : 15;
     // if (number > UPPER LIMIT ON NUM) return res.send('Upper limit on range hit.');
@@ -89,7 +88,7 @@ async function getTrees(req, res) {
     const longitude = parseFloat(req.body.longitude);
     const latitude = parseFloat(req.body.latitude);
     const trees = [];
-    const returned = isHealthy != null ? await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where({ isHealthy: isHealthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'))
+    const returned = is_healthy != null ? await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where({ is_healthy: is_healthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'))
         : await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'));
     _.each(returned, (row) => {
         if (trees.length < number) {
