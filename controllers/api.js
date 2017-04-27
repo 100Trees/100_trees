@@ -12,7 +12,7 @@ async function infectedTree(req, res) {
     if (req.files.length == 0) return res.send('No valid image files given');
     const tree = {
         geom: knex.raw('ST_SetSRID(' + postgis.makePoint(parseFloat(req.body.longitude), parseFloat(req.body.latitude)) + ',4326)'),
-        poster_id: req.session.user ? req.session.user.id : -1,
+        poster_id: req.user ? req.user.id : -1,
         saver_id: null,
         is_healthy: false,
         description: req.body.description
@@ -56,7 +56,7 @@ async function savedTree(req, res) {
         is_healthy: false
     }).update({
         is_healthy: true,
-        saver_id: req.session.user ? req.session.user.id : -1
+        saver_id: req.user ? req.user.id : -1
     });
     _.each(req.files, async(f) => {
         await knex.insert({

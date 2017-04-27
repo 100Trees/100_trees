@@ -62,6 +62,8 @@ app.use(function(req, res, next) {
     next();
 });
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static('uploads'));
+
 expstate.extend(app);
 app.set("state namespace", 'App');
 
