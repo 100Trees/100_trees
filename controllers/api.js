@@ -99,7 +99,7 @@ async function getTrees(req, res) {
 }
 
 async function treeInfo(req, res) {
-    const treeId = req.body.id;
+    const treeId = parseInt(req.body.id);
     if (!treeId) res.send('No tree id provided.');
     const trees = await knex('trees').where({ id: treeId });
     if (trees.length !== 1) res.send('Tree id has either 0 or more than 1 trees associated with it.');
@@ -118,7 +118,7 @@ async function treeInfo(req, res) {
 }
 
 async function userInfo(req, res) {
-    const id = req.body.id;
+    const id = parseInt(req.body.id);
     const savedTrees = await knex('trees').where({ saver_id: id });
     const postedTrees = await knex('trees').where({ poster_id: id });
     const users = await knex('users').where({ id });
