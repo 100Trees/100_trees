@@ -108,16 +108,13 @@ async function treeInfo(req, res) {
     const trees = await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where({ id: treeId })
     if (trees.length !== 1) res.send('Tree id has either 0 or more than 1 trees associated with it.');
     const tree = trees[0];
-    // BEGIN MAPS CODE
-    var str = null;
-    maps.reverseGeocode({
+    const city = await maps.reverseGeocode({
         latlng: tree
     }).asPromise().then((response) => {
-        str = "test";
-        console.log(response.json.results)
-    })
-    console.log(str);
-    // END MAPS CODE
+        var str = response.json.results[2].formatted_address;
+        return str.substring(0, city.indexOf(',') + 4);
+    });
+    tree.city = city;
     const userId = tree.poster_id;
     const isBefore = !(tree.is_healthy);
     const pictures = await knex('pictures').where({ tree_id: treeId, is_before: isBefore });
