@@ -22,6 +22,7 @@ var HomeController = require('./controllers/home');
 var userController = require('./controllers/user');
 var contactController = require('./controllers/contact');
 var apiController = require('./controllers/api');
+var postController = require('./controllers/post');
 
 // Passport OAuth strategies
 require('./config/passport');
@@ -93,6 +94,7 @@ app.post('/api/trees', upload.array('picture'), apiController.getTrees);
 app.get('/api/me', apiController.me);
 app.post('/api/tree/info', apiController.treeInfo);
 app.post('/api/user/info', apiController.userInfo);
+app.get('/post', postController.postGet);
 
 // Production error handler
 if (app.get('env') === 'production') {

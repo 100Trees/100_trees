@@ -34,7 +34,7 @@ async function infectedTree(req, res) {
 
     // getTrees(req, res);
 
-    return res.redirect('/contact');
+    return res.redirect('/post');
 };
 
 /**
