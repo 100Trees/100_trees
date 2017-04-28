@@ -101,7 +101,7 @@ async function getTrees(req, res) {
 async function treeInfo(req, res) {
     const treeId = parseInt(req.body.id);
     if (!treeId) res.send('No tree id provided.');
-    const trees = await knex('trees').where({ id: treeId });
+    const trees = await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where({ id: treeId })
     if (trees.length !== 1) res.send('Tree id has either 0 or more than 1 trees associated with it.');
     const tree = trees[0];
     const userId = tree.poster_id;
