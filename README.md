@@ -33,8 +33,7 @@ API_KEY = ''
 - Add your [Google Maps API Key](https://developers.google.com/maps/) as `API_KEY` in your `.env` file.
 - Run `psql` and then `create database trees;`
 
-At the equator, one mile of latitude is equal to 0.01449275362 (or 1/69) degrees
-At the equator, one mile of longitude is equal to 0.01811594203 (or 1/55.2) degrees
+At the equator, one mile of latitude is equal to 0.01449275362 (or 1/69) degrees. At the equator, one mile of longitude is equal to 0.01811594203 (or 1/55.2) degrees
 
 
 
