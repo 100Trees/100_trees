@@ -3,6 +3,10 @@ dotenv.load();
 const knex = require('../config/bookshelf.js').knex;
 const postgis = require('knex-postgis')(knex);
 const _ = require('lodash');
+var maps = require('@google/maps').createClient({
+    key: process.env.API_KEY,
+    Promise: Promise
+});
 /**
  * POST /tree/infected
  * This endpoint saves a new, infected tree to the database.
@@ -30,7 +34,7 @@ async function infectedTree(req, res) {
 
     // getTrees(req, res);
 
-    return res.redirect('/contact');
+    return res.redirect('/post');
 };
 
 /**
@@ -88,8 +92,7 @@ async function getTrees(req, res) {
     const longitude = parseFloat(req.body.longitude);
     const latitude = parseFloat(req.body.latitude);
     const trees = [];
-    const returned = isHealthy != null ? await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where({ is_healthy: isHealthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'))
-        : await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'));
+    const returned = isHealthy != null ? await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where({ is_healthy: isHealthy }).andWhere(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';')) : await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where(knex.raw('ST_Distance_Sphere(geom, ST_SetSRID(' + postgis.makePoint(longitude, latitude) + ',4326)) <= ' + range + ';'));
     _.each(returned, (row) => {
         if (trees.length < number) {
             trees.push(row);
@@ -104,13 +107,17 @@ async function treeInfo(req, res) {
     const trees = await knex.select('*', knex.raw('ST_X(geom) AS longitude'), knex.raw('ST_Y(geom) AS latitude')).from('trees').where({ id: treeId })
     if (trees.length !== 1) res.send('Tree id has either 0 or more than 1 trees associated with it.');
     const tree = trees[0];
+    const response = await maps.reverseGeocode({
+        latlng: tree
+    }).asPromise();
+    let city = response.json.results[2].formatted_address.match(/^([A-Za-z\s]+\,\s[A-Z]{2})/)[0];
+    tree.city = city;
     const userId = tree.poster_id;
     const isBefore = !(tree.is_healthy);
     const pictures = await knex('pictures').where({ tree_id: treeId, is_before: isBefore });
     const users = await knex('users').where({ id: userId });
     const username = userId === -1 && users.length === 0 ? "Guest User" : users[0].name;
-    res.send(
-    {
+    res.send({
         username,
         pictures,
         tree
@@ -125,7 +132,7 @@ async function userInfo(req, res) {
     if (users.length !== 1) return res.send(`0 or >1 users associated with id ${id}`);
     const user = users[0];
     res.send({
-        user, 
+        user,
         savedTrees,
         postedTrees
     });
@@ -136,7 +143,7 @@ function me(req, res) {
 }
 
 function imageFilter(req, file, cb) {
-    if(file.mimetype.includes('image')) cb(null, true);
+    if (file.mimetype.includes('image')) cb(null, true);
     else cb(null, false);
 }
 
