@@ -110,7 +110,7 @@ async function treeInfo(req, res) {
     const response = await maps.reverseGeocode({
         latlng: tree
     }).asPromise();
-    let city = response.json.results[4].formatted_address.match(/^([A-Za-z\s]+\,\s[A-Z]{2})/)[0];
+    let city = response.json.results[2].formatted_address.match(/^([A-Za-z\s]+\,\s[A-Z]{2})/)[0];
     tree.city = city;
     const userId = tree.poster_id;
     const isBefore = !(tree.is_healthy);
